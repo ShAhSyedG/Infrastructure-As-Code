@@ -1,0 +1,17 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: minio-pv
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  capacity:
+    storage: 300Gi
+  hostPath:
+    path: "/data"
+    type: DirectoryOrCreate
+
+

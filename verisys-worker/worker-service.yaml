@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: verisys-worker
+spec:
+  type: LoadBalancer
+  #externalTrafficPolicy: Local
+  selector:
+    app: verisys-worker
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+    #nodePort: 30010
+

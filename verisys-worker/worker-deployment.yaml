@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: verisys-worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: verisys-worker
+  template:
+    metadata:
+      labels:
+        app: verisys-worker
+    spec:
+      imagePullSecrets:
+      - name: dockerhub-secrets
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: verisys-worker-cm
+        name: verisys-worker
+        image: orginzation_name/verisys-worker:v1.2
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources:
+          limits:
+            cpu: "5m"
+            memory: "1Gi"

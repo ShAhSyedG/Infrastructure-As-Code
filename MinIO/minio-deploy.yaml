@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio-deployment
+  labels:
+    app: minio
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          claimName: minio-pvc-claim
+
+      containers:
+      - name: minio
+        image: minio/minio:latest
+        args:
+        - server
+        - /data/
+        #- --address
+        #- ":30002"
+        #- --console-address
+        #- ":80"
+        env:
+        - name: MINIO_ACCESS_KEY
+          value: "minio"
+        - name: MINIO_SECRET_KEY
+          value: "minio123"
+        ports:
+        - containerPort: 9000
+          hostPort: 9000
+        volumeMounts:
+        - name: storage
+          mountPath: "/data/"
+
+
+

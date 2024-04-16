@@ -1,0 +1,25 @@
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: verisys-worker-cm
+data:
+  ### Slack
+  SLACK_CHANNEL_ID: 'SLACK CHANNEL ID'
+  SLACK_TOKEN: 'SLACK_TOKEN'
+  SLACK_APP_TOKEN: 'SLACK_APP_TOKEN'
+  ### Verisys
+  VERISYS_SITE_URL: 'SITE-URL'
+  VERISYS_USERNAME: 'USERNAME@gmail.com'
+  VERISYS_PASSWORD: 'PASSWORD'
+  ### Captcha 
+  CAPTCHA_MODEL_API: 'LINKED KUBERNETES SERVICE'
+
+  ### Backend
+  UPLOAD_DOC_API: 'https://domain.com/verisys/documents'
+  UPLOAD_DATA_API: 'https://domain.com/verisys/received'
+  PING_API: 'https://domain.com/verisys/worker/ping'
+
+  VERISYS_HOST: 'https://domain.com'
+  VERISYS_LOG_API_PATH: '/verisys/logs'
+  SESSION_TIMEOUT: '300000'
