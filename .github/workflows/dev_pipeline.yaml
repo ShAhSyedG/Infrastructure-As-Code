@@ -1,0 +1,312 @@
+name: Dev - Build and Deploy
+
+on:
+  push:
+    branches:
+      - DEV*
+      - TEST*
+
+jobs:
+  build-dev:
+    if: github.ref == 'refs/heads/DEV'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Out Code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm run build
+        env: 
+          NODE_ENV: dev
+          REACT_APP_API_ENDPOINT: AWS_APP_RUNNER
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.DEV_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.DEV_ACCESS_KEY_SECRET }}
+          aws-region: us-east-1
+  
+      - name: Deploy
+        run: |
+          aws s3 sync build/ s3://elections-meraid-frontend/
+          aws cloudfront create-invalidation --distribution-id ID --paths "/*"
+
+  build-dev1:
+    if: github.ref == 'refs/heads/DEV1'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Out Code
+        uses: actions/checkout@v2
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm run build
+        env: 
+          NODE_ENV: dev
+          REACT_APP_API_ENDPOINT: AWS_APP_RUNNER
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.DEV_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.DEV_ACCESS_KEY_SECRET }}
+          aws-region: us-east-1
+    
+      - name: Deploy
+        run: |
+          aws s3 sync build/ s3://dev-elections-frontend/
+          aws cloudfront create-invalidation --distribution-id ID --paths "/*"
+
+  build-dev2:
+    if: github.ref == 'refs/heads/DEV2'
+    runs-on: ubuntu-latest
+        
+    steps:
+      - name: Check Out Code
+        uses: actions/checkout@v2
+              
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+        
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm run build
+        env: 
+          NODE_ENV: dev
+          REACT_APP_API_ENDPOINT: AWS_APP_RUNNER
+        
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.DEV_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.DEV_ACCESS_KEY_SECRET }}
+          aws-region: us-east-1
+    
+      - name: Deploy
+        run: |
+          aws s3 sync build/ s3://dev-elections-frontend-1/
+          aws cloudfront create-invalidation --distribution-id ID --paths "/*"
+
+  build-dev3:
+    if: github.ref == 'refs/heads/DEV3'
+    runs-on: ubuntu-latest
+                
+    steps:
+      - name: Check Out Code
+        uses: actions/checkout@v2
+                      
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+                
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm run build
+        env: 
+          NODE_ENV: dev
+          REACT_APP_API_ENDPOINT: AWS_APP_RUNNER
+                
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.DEV_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.DEV_ACCESS_KEY_SECRET }}
+          aws-region: us-east-1
+            
+      - name: Deploy
+        run: |
+          aws s3 sync build/ s3://dev-elections-frontend-2/
+          aws cloudfront create-invalidation --distribution-id ID --paths "/*"
+
+  build-dev4:
+    if: github.ref == 'refs/heads/DEV4'
+    runs-on: ubuntu-latest
+                        
+    steps:
+      - name: Check Out Code
+        uses: actions/checkout@v2
+                              
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+                        
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm run build
+        env: 
+          NODE_ENV: dev
+          REACT_APP_API_ENDPOINT: AWS_APP_RUNNER
+                        
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.DEV_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.DEV_ACCESS_KEY_SECRET }}
+          aws-region: us-east-1
+                    
+      - name: Deploy
+        run: |
+          aws s3 sync build/ s3://dev-elections-frontend-3/
+          aws cloudfront create-invalidation --distribution-id ID --paths "/*"
+        
+
+
+
+############################################################################################################
+####### TEST WORKFLOW #######
+############################################################################################################
+
+  TEST1:
+    if: github.ref == 'refs/heads/TEST1'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Out Code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm run build
+        env: 
+          NODE_ENV: dev
+          REACT_APP_API_ENDPOINT: AWS_APP_RUNNER
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.DEV_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.DEV_ACCESS_KEY_SECRET }}
+          aws-region: us-east-1
+  
+      - name: Deploy
+        run: |
+          aws s3 sync build/ s3://test-elections-frontend/
+          aws cloudfront create-invalidation --distribution-id ID --paths "/*"
+
+  TEST2:
+    if: github.ref == 'refs/heads/TEST2'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Out Code
+        uses: actions/checkout@v2
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm run build
+        env: 
+          NODE_ENV: dev
+          REACT_APP_API_ENDPOINT: AWS_APP_RUNNER
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.DEV_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.DEV_ACCESS_KEY_SECRET }}
+          aws-region: us-east-1
+    
+      - name: Deploy
+        run: |
+          aws s3 sync build/ s3://test-elections-frontend-1/
+          aws cloudfront create-invalidation --distribution-id ID --paths "/*"
+
+  TEST3:
+    if: github.ref == 'refs/heads/TEST3'
+    runs-on: ubuntu-latest
+        
+    steps:
+      - name: Check Out Code
+        uses: actions/checkout@v2
+              
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+        
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm run build
+        env: 
+          NODE_ENV: dev
+          REACT_APP_API_ENDPOINT: AWS_APP_RUNNER
+        
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.DEV_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.DEV_ACCESS_KEY_SECRET }}
+          aws-region: us-east-1
+    
+      - name: Deploy
+        run: |
+          aws s3 sync build/ s3://test-elections-frontend-2/
+          aws cloudfront create-invalidation --distribution-id ID --paths "/*"
+
+  TEST4:
+    if: github.ref == 'refs/heads/TEST4'
+    runs-on: ubuntu-latest
+                
+    steps:
+      - name: Check Out Code
+        uses: actions/checkout@v2
+                      
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+                
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm run build
+        env: 
+          NODE_ENV: dev
+          REACT_APP_API_ENDPOINT: AWS_APP_RUNNER
+                
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.DEV_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.DEV_ACCESS_KEY_SECRET }}
+          aws-region: us-east-1
+            
+      - name: Deploy
+        run: |
+          aws s3 sync build/ s3://test-elections-frontend-3/
+          aws cloudfront create-invalidation --distribution-id ID --paths "/*"
