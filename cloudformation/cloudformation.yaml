@@ -1,0 +1,784 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This is the IAM Role required to integrate your AWS account with Serverless Inc.'s (serverless.com) monitoring and observability products.
+Resources:
+  ServerlessIntegrationStackReporter:
+    Type: AWS::CloudFormation::CustomResource
+    Version: '1.0'
+    Properties:
+      ServiceToken: !Ref ReportServiceToken
+      ExternalId: !Ref ExternalId
+      Version: !Ref Version
+  ServerlessEventSubscriptionExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ServerlessEventSubscriptionExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: EventBridgeInvokeAPI
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: events:InvokeApiDestination
+                Resource:
+                  - !Sub arn:aws:events:*:${AWS::AccountId}:api-destination/serverless_event_*/*
+  ServerlessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ServerlessRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Join
+                - ':'
+                - - arn
+                  - aws
+                  - iam
+                  - ''
+                  - !Ref AccountId
+                  - root
+            Action:
+              - sts:AssumeRole
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref ExternalId
+      Path: /
+  ServerlessMonitoringRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ServerlessMonitoringRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+              Service:
+                - streams.metrics.cloudwatch.amazonaws.com
+                - firehose.amazonaws.com
+                - logs.amazonaws.com
+            Action:
+              - sts:AssumeRole
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref AWS::AccountId
+      Path: /
+  ServerlessReadOnlyPolicyAtoD:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Roles:
+        - !Ref ServerlessRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - apigateway:GetAccount
+              - apigateway:GetAuthorizer
+              - apigateway:GetAuthorizers
+              - apigateway:GetBasePathMapping
+              - apigateway:GetBasePathMappings
+              - apigateway:GetDeployment
+              - apigateway:GetDeployments
+              - apigateway:GetDomainName
+              - apigateway:GetDomainNames
+              - apigateway:GetExport
+              - apigateway:GetGatewayResponse
+              - apigateway:GetGatewayResponses
+              - apigateway:GetIntegration
+              - apigateway:GetIntegrationResponse
+              - apigateway:GetMethod
+              - apigateway:GetMethodResponse
+              - apigateway:GetModel
+              - apigateway:GetModels
+              - apigateway:GetModelTemplate
+              - apigateway:GetRequestValidator
+              - apigateway:GetRequestValidators
+              - apigateway:GetResource
+              - apigateway:GetResources
+              - apigateway:GetRestApi
+              - apigateway:GetRestApis
+              - apigateway:GetStage
+              - apigateway:GetStages
+              - apigateway:GetTags
+              - apigateway:GetUsage
+              - apigateway:GetUsagePlan
+              - apigateway:GetUsagePlans
+              - apigateway:GetVpcLink
+              - apigateway:GetApi
+              - apigateway:GetApis
+              - apigateway:GetApiMapping
+              - apigateway:GetIntegrationResponses
+              - apigateway:GetIntegration
+              - apigateway:GetIntegrations
+              - apigateway:GetRoute
+              - apigateway:GetRoutes
+              - apigateway:GetRouteResponse
+              - apigateway:GetRouteResponses
+              - apprunner:DescribeAutoScalingConfiguration
+              - apprunner:DescribeCustomDomains
+              - apprunner:DescribeObservabilityConfiguration
+              - apprunner:DescribeOperation
+              - apprunner:DescribeService
+              - apprunner:DescribeVpcConnector
+              - apprunner:ListAutoScalingConfigurations
+              - apprunner:ListConnections
+              - apprunner:ListObservabilityConfigurations
+              - apprunner:ListOperations
+              - apprunner:ListServices
+              - apprunner:ListTagsForResource
+              - apprunner:ListVpcConnectors
+              - appsync:GetApiAssociation
+              - appsync:GetDataSource
+              - appsync:GetDomainName
+              - appsync:GetFunction
+              - appsync:GetGraphqlApi
+              - appsync:GetIntrospectionSchema
+              - appsync:GetResolver
+              - appsync:GetSchemaCreationStatus
+              - appsync:ListDataSources
+              - appsync:ListDomainNames
+              - appsync:ListFunctions
+              - appsync:ListGraphqlApis
+              - appsync:ListResolvers
+              - appsync:ListResolversByFunction
+              - appsync:ListTagsForResource
+              - autoscaling-plans:DescribeScalingPlanResources
+              - autoscaling-plans:DescribeScalingPlans
+              - cloudformation:DescribePublisher
+              - cloudformation:DescribeStackInstance
+              - cloudformation:DescribeStackResource
+              - cloudformation:DescribeStackResources
+              - cloudformation:DescribeStackSet
+              - cloudformation:DescribeStacks
+              - cloudformation:ListStackInstances
+              - cloudformation:ListStackResources
+              - cloudformation:ListStackSets
+              - cloudformation:ListStacks
+              - cloudfront:DescribeFunction
+              - cloudfront:GetCachePolicy
+              - cloudfront:GetCachePolicyConfig
+              - cloudfront:GetDistribution
+              - cloudfront:GetDistributionConfig
+              - cloudfront:ListDistributions
+              - cloudfront:ListDistributionsByCachePolicyId
+              - cloudfront:ListFunctions
+              - cloudfront:ListTagsForResource
+              - cloudtrail:DescribeTrails
+              - cloudtrail:GetTrailStatus
+              - cloudtrail:ListTags
+              - cloudtrail:ListTrails
+              - cloudtrail:LookupEvents
+              - cloudwatch:DescribeAlarmHistory
+              - cloudwatch:DescribeAlarms
+              - cloudwatch:DescribeAlarmsForMetric
+              - cloudwatch:DescribeAnomalyDetectors
+              - cloudwatch:DescribeInsightRules
+              - cloudwatch:GetDashboard
+              - cloudwatch:GetInsightRuleReport
+              - cloudwatch:GetMetricData
+              - cloudwatch:GetMetricStatistics
+              - cloudwatch:GetMetricStream
+              - cloudwatch:GetMetricWidgetImage
+              - cloudwatch:ListDashboards
+              - cloudwatch:ListMetricStreams
+              - cloudwatch:ListMetrics
+              - cloudwatch:ListTagsForResource
+              - logs:DescribeLogGroups
+              - logs:DescribeLogStreams
+              - logs:DescribeSubscriptionFilters
+              - logs:FilterLogEvents
+              - logs:ListTagsLogGroup
+              - logs:TestMetricFilter
+              - ce:DescribeCostCategoryDefinition
+              - ce:GetCostAndUsage
+              - ce:GetCostAndUsageWithResources
+              - ce:GetCostCategories
+              - ce:GetTags
+              - ce:ListCostAllocationTags
+              - ce:ListCostCategoryDefinitions
+              - ce:ListTagsForResource
+              - dynamodb:DescribeBackup
+              - dynamodb:DescribeContinuousBackups
+              - dynamodb:DescribeContributorInsights
+              - dynamodb:DescribeExport
+              - dynamodb:DescribeGlobalTable
+              - dynamodb:DescribeGlobalTableSettings
+              - dynamodb:DescribeKinesisStreamingDestination
+              - dynamodb:DescribeLimits
+              - dynamodb:DescribeReservedCapacity
+              - dynamodb:DescribeReservedCapacityOfferings
+              - dynamodb:DescribeStream
+              - dynamodb:DescribeTable
+              - dynamodb:DescribeTableReplicaAutoScaling
+              - dynamodb:DescribeTimeToLive
+              - dynamodb:ListBackups
+              - dynamodb:ListContributorInsights
+              - dynamodb:ListExports
+              - dynamodb:ListGlobalTables
+              - dynamodb:ListStreams
+              - dynamodb:ListTables
+              - dynamodb:ListTagsOfResource
+            Resource: '*'
+  ServerlessReadOnlyPolicyEtoK:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Roles:
+        - !Ref ServerlessRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - ecs:DescribeCapacityProviders
+              - ecs:DescribeClusters
+              - ecs:DescribeContainerInstances
+              - ecs:DescribeServices
+              - ecs:DescribeTaskDefinition
+              - ecs:DescribeTaskSets
+              - ecs:DescribeTasks
+              - ecs:ListAccountSettings
+              - ecs:ListAttributes
+              - ecs:ListClusters
+              - ecs:ListContainerInstances
+              - ecs:ListServices
+              - ecs:ListTagsForResource
+              - ecs:ListTaskDefinitionFamilies
+              - ecs:ListTaskDefinitions
+              - ecs:ListTasks
+              - elasticache:DescribeCacheClusters
+              - elasticache:DescribeCacheEngineVersions
+              - elasticache:DescribeCacheParameterGroups
+              - elasticache:DescribeCacheParameters
+              - elasticache:DescribeCacheSubnetGroups
+              - elasticache:DescribeEngineDefaultParameters
+              - elasticache:DescribeEvents
+              - elasticache:DescribeGlobalReplicationGroups
+              - elasticache:DescribeReplicationGroups
+              - elasticache:DescribeReservedCacheNodes
+              - elasticache:DescribeUpdateActions
+              - elasticache:DescribeUserGroups
+              - elasticache:DescribeUsers
+              - elasticache:ListAllowedNodeTypeModifications
+              - elasticache:ListTagsForResource
+              - elasticloadbalancing:DescribeInstanceHealth
+              - elasticloadbalancing:DescribeLoadBalancerAttributes
+              - elasticloadbalancing:DescribeLoadBalancerPolicies
+              - elasticloadbalancing:DescribeLoadBalancerPolicyTypes
+              - elasticloadbalancing:DescribeLoadBalancers
+              - elasticloadbalancing:DescribeTags
+              - elasticloadbalancing:DescribeAccountLimits
+              - elasticloadbalancing:DescribeListeners
+              - elasticloadbalancing:DescribeLoadBalancerAttributes
+              - elasticloadbalancing:DescribeLoadBalancers
+              - elasticloadbalancing:DescribeRules
+              - elasticloadbalancing:DescribeTags
+              - elasticloadbalancing:DescribeTargetGroupAttributes
+              - elasticloadbalancing:DescribeTargetGroups
+              - elasticloadbalancing:DescribeTargetHealth
+              - elasticmapreduce:DescribeCluster
+              - elasticmapreduce:DescribeStep
+              - elasticmapreduce:DescribeStudio
+              - elasticmapreduce:ListBootstrapActions
+              - elasticmapreduce:ListClusters
+              - elasticmapreduce:ListInstanceFleets
+              - elasticmapreduce:ListInstanceGroups
+              - elasticmapreduce:ListInstances
+              - elasticmapreduce:ListSteps
+              - elasticmapreduce:ListStudioSessionMappings
+              - elasticmapreduce:ListStudios
+              - es:DescribeDomain
+              - es:DescribeDomainAutoTunes
+              - es:DescribeDomainConfig
+              - es:DescribeDomains
+              - es:DescribeElasticsearchDomain
+              - es:DescribeElasticsearchDomainConfig
+              - es:DescribeElasticsearchDomains
+              - es:DescribePackages
+              - es:ListDomainNames
+              - es:ListDomainsForPackage
+              - es:ListElasticsearchInstanceTypeDetails
+              - es:ListElasticsearchInstanceTypes
+              - es:ListInstanceTypeDetails
+              - es:ListPackagesForDomain
+              - es:ListTags
+              - health:DescribeAffectedAccountsForOrganization
+              - health:DescribeAffectedEntities
+              - health:DescribeAffectedEntitiesForOrganization
+              - health:DescribeEntityAggregates
+              - health:DescribeEventAggregates
+              - health:DescribeEventDetails
+              - health:DescribeEventDetailsForOrganization
+              - health:DescribeEventTypes
+              - health:DescribeEvents
+              - health:DescribeEventsForOrganization
+              - health:DescribeHealthServiceStatusForOrganization
+              - kinesis:DescribeStream
+              - kinesis:DescribeStreamConsumer
+              - kinesis:DescribeStreamSummary
+              - kinesis:ListShards
+              - kinesis:ListStreamConsumers
+              - kinesis:ListStreams
+              - kinesis:ListTagsForStream
+            Resource: '*'
+  ServerlessReadOnlyPolicyLtoX:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Roles:
+        - !Ref ServerlessRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - lambda:GetAccountSettings
+              - lambda:GetAlias
+              - lambda:GetEventSourceMapping
+              - lambda:GetFunctionConcurrency
+              - lambda:GetFunctionConfiguration
+              - lambda:GetFunctionEventInvokeConfig
+              - lambda:GetFunctionUrlConfig
+              - lambda:GetLayerVersion
+              - lambda:GetLayerVersionPolicy
+              - lambda:GetPolicy
+              - lambda:GetProvisionedConcurrencyConfig
+              - lambda:ListAliases
+              - lambda:ListCodeSigningConfigs
+              - lambda:ListEventSourceMappings
+              - lambda:ListFunctionEventInvokeConfigs
+              - lambda:ListFunctionUrlConfigs
+              - lambda:ListFunctions
+              - lambda:ListFunctionsByCodeSigningConfig
+              - lambda:ListLayerVersions
+              - lambda:ListLayers
+              - lambda:ListProvisionedConcurrencyConfigs
+              - lambda:ListTags
+              - lambda:ListVersionsByFunction
+              - tag:GetResources
+              - tag:GetTagKeys
+              - tag:GetTagValues
+              - rds:DescribeDBClusterParameterGroups
+              - rds:DescribeDBClusterParameters
+              - rds:DescribeDBClusters
+              - rds:DescribeDBEngineVersions
+              - rds:DescribeDBInstances
+              - rds:DescribeDBParameterGroups
+              - rds:DescribeDBParameters
+              - rds:DescribeDBProxies
+              - rds:DescribeDBProxyEndpoints
+              - rds:DescribeDBProxyTargetGroups
+              - rds:DescribeDBProxyTargets
+              - rds:DescribeDBSecurityGroups
+              - rds:DescribeDBSubnetGroups
+              - rds:DescribeEventCategories
+              - rds:DescribeEventSubscriptions
+              - rds:DescribeEvents
+              - rds:DescribeSourceRegions
+              - rds:ListTagsForResource
+              - route53:ListCidrBlocks
+              - route53:ListCidrCollections
+              - route53:ListCidrLocations
+              - route53:ListGeoLocations
+              - route53:ListHealthChecks
+              - route53:ListHostedZones
+              - route53:ListHostedZonesByName
+              - route53:ListHostedZonesByVPC
+              - route53:ListQueryLoggingConfigs
+              - route53:ListResourceRecordSets
+              - route53:ListReusableDelegationSets
+              - route53:ListTagsForResource
+              - s3:DescribeMultiRegionAccessPointOperation
+              - s3:GetAccessPoint
+              - s3:GetAccessPointConfigurationForObjectLambda
+              - s3:GetAccessPointForObjectLambda
+              - s3:GetAccessPointPolicyStatus
+              - s3:GetAccessPointPolicyStatusForObjectLambda
+              - s3:GetAccountPublicAccessBlock
+              - s3:GetBucketAcl
+              - s3:GetBucketCORS
+              - s3:GetBucketLocation
+              - s3:GetBucketLogging
+              - s3:GetBucketNotification
+              - s3:GetBucketOwnershipControls
+              - s3:GetBucketPolicy
+              - s3:GetBucketTagging
+              - s3:GetBucketVersioning
+              - s3:GetBucketWebsite
+              - s3:GetMetricsConfiguration
+              - s3:GetMultiRegionAccessPoint
+              - s3:GetMultiRegionAccessPointPolicy
+              - s3:ListAccessPoints
+              - s3:ListAccessPointsForObjectLambda
+              - s3:ListAllMyBuckets
+              - s3:ListBucketVersions
+              - ses:GetAccountSendingEnabled
+              - ses:GetSendStatistics
+              - ses:GetTemplate
+              - ses:ListTemplates
+              - ses:ListVerifiedEmailAddresses
+              - ses:GetAccount
+              - ses:GetDeliverabilityTestReport
+              - ses:GetDomainDeliverabilityCampaign
+              - ses:GetDomainStatisticsReport
+              - ses:ListDeliverabilityTestReports
+              - ses:ListDomainDeliverabilityCampaigns
+              - ses:ListEmailIdentities
+              - ses:ListEmailTemplates
+              - ses:ListTagsForResource
+              - sns:ListSubscriptions
+              - sns:ListSubscriptionsByTopic
+              - sns:ListTagsForResource
+              - sns:ListTopics
+              - sqs:GetQueueAttributes
+              - sqs:GetQueueUrl
+              - sqs:ListDeadLetterSourceQueues
+              - sqs:ListQueueTags
+              - sqs:ListQueues
+              - states:DescribeActivity
+              - states:DescribeExecution
+              - states:DescribeStateMachine
+              - states:DescribeStateMachineForExecution
+              - states:GetActivityTask
+              - states:GetExecutionHistory
+              - states:ListActivities
+              - states:ListExecutions
+              - states:ListStateMachines
+              - states:ListTagsForResource
+              - xray:BatchGetTraces
+              - xray:GetGroup
+              - xray:GetGroups
+              - xray:GetInsight
+              - xray:GetInsightEvents
+              - xray:GetInsightImpactGraph
+              - xray:GetInsightSummaries
+              - xray:GetSamplingRules
+              - xray:GetSamplingStatisticSummaries
+              - xray:GetSamplingTargets
+              - xray:GetServiceGraph
+              - xray:GetTimeSeriesServiceStatistics
+              - xray:GetTraceGraph
+              - xray:GetTraceSummaries
+              - xray:ListTagsForResource
+            Resource: '*'
+  ServerlessWritePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Roles:
+        - !Ref ServerlessRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - apigateway:UpdateStage
+              - logs:CreateLogGroup
+              - logs:PutDestination
+              - logs:PutDestinationPolicy
+              - logs:PutSubscriptionFilter
+              - logs:DeleteSubscriptionFilter
+              - lambda:UpdateFunctionConfiguration
+              - lambda:InvokeAsync
+              - lambda:InvokeFunction
+              - s3:PutBucketNotification
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - cloudformation:DeleteStack
+              - iam:DeletePolicy
+              - iam:DeleteRole
+              - iam:DetachRolePolicy
+              - iam:DeletePolicyVersion
+              - iam:GetPolicy
+              - iam:ListPolicyVersions
+              - iam:DeleteRolePolicy
+              - iam:CreateServiceLinkedRole
+            Resource:
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/apidestinations.events.amazonaws.com/AWSServiceRoleForAmazonEventBridgeApiDestinations
+              - !Sub ${AWS::StackId}
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/ServerlessRole
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/ServerlessMonitoringRole
+              - !Sub arn:aws:iam::${AWS::AccountId}:policy/Serverless-Inc-Role-Stack-Serverless*
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/ServerlessEventSubscriptionExecutionRole
+  ServerlessMonitoringPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Roles:
+        - !Ref ServerlessRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - cloudwatch:GetMetricStream
+              - cloudwatch:PutMetricStream
+              - cloudwatch:DeleteMetricStream
+            Resource:
+              - !Sub arn:aws:cloudwatch:*:${AWS::AccountId}:metric-stream/serverless_metrics-stream
+          - Effect: Allow
+            Action:
+              - logs:PutDestination
+              - logs:PutDestinationPolicy
+              - logs:PutSubscriptionFilter
+              - logs:DeleteSubscriptionFilter
+            Resource:
+              - !Sub arn:aws:cloudwatch:*:${AWS::AccountId}:metric-stream/serverless_metrics-stream
+          - Effect: Allow
+            Action:
+              - firehose:DescribeDeliveryStream
+              - firehose:CreateDeliveryStream
+              - firehose:DeleteDeliveryStream
+              - firehose:UpdateDestination
+            Resource:
+              - !Sub arn:aws:firehose:*:${AWS::AccountId}:deliverystream/serverless_metrics-firehose
+              - !Sub arn:aws:firehose:*:${AWS::AccountId}:deliverystream/serverless_logs-firehose
+          - Effect: Allow
+            Action:
+              - s3:GetBucketLocation
+              - s3:CreateBucket
+              - s3:DeleteBucket
+              - s3:ListBucket
+              - s3:DeleteObject
+              - s3:PutBucketPolicy
+              - s3:DeleteBucketPolicy
+              - s3:PutLifecycleConfiguration
+              - s3:GetLifecycleConfiguraiton
+            Resource:
+              - arn:aws:s3:::serverless.firehose-backup-*
+              - arn:aws:s3:::serverless.metrics-firehose-backup-*
+              - arn:aws:s3:::serverless.logs-firehose-backup-*
+          - Effect: Allow
+            Sid: ServerlessIncEventBridgeAccess
+            Action:
+              - events:DescribeConnection
+              - events:DescribeRule
+              - events:DescribeApiDestination
+              - events:CreateConnection
+              - events:CreateApiDestination
+              - events:PutRule
+              - events:PutTargets
+              - events:UpdateConnection
+              - events:UpdateApiDestination
+              - events:DeleteRule
+              - events:DeleteConnection
+              - events:DeleteApiDestination
+              - events:RemoveTargets
+            Resource:
+              - !Sub arn:aws:events:*:${AWS::AccountId}:rule/serverless_*
+              - !Sub arn:aws:events:*:${AWS::AccountId}:rule/default/serverless_*
+              - !Sub arn:aws:events:*:${AWS::AccountId}:api-destination/serverless_*
+              - !Sub arn:aws:events:*:${AWS::AccountId}:connection/serverless_*
+          - Effect: Allow
+            Sid: ServerlessIncCloudtrailAccess
+            Action:
+              - cloudtrail:GetTrail
+              - cloudtrail:CreateTrail
+              - cloudtrail:DeleteTrail
+              - cloudtrail:UpdateTrail
+              - cloudtrail:StartLogging
+              - cloudtrail:StopLogging
+            Resource:
+              - !Sub arn:aws:cloudtrail:*:${AWS::AccountId}:trail/serverless_trail
+          - Effect: Allow
+            Sid: ServerlessIncEventBridgeSecretsAccess
+            Action:
+              - secretsmanager:CreateSecret
+              - secretsmanager:UpdateSecret
+              - secretsmanager:DescribeSecret
+              - secretsmanager:DeleteSecret
+              - secretsmanager:GetSecretValue
+              - secretsmanager:PutSecretValue
+            Resource: !Sub arn:aws:secretsmanager:*:${AWS::AccountId}:secret:events!connection/serverless_event_connection/*
+  ServerlessAssumePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Roles:
+        - !Ref ServerlessRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - iam:PassRole
+            Resource:
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/ServerlessMonitoringRole
+              - !GetAtt ServerlessEventSubscriptionExecutionRole.Arn
+  ServerlessMonitoringStreamPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Roles:
+        - !Ref ServerlessMonitoringRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - firehose:PutRecord
+              - firehose:PutRecordBatch
+            Resource:
+              - !Sub arn:aws:firehose:*:${AWS::AccountId}:deliverystream/serverless_metrics-firehose
+              - !Sub arn:aws:firehose:*:${AWS::AccountId}:deliverystream/serverless_logs-firehose
+  ServerlessMonitoringFirehosePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Roles:
+        - !Ref ServerlessMonitoringRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - glue:GetTable
+              - glue:GetTableVersion
+              - glue:GetTableVersions
+            Resource:
+              - !Sub arn:aws:glue:*:${AWS::AccountId}:catalog
+              - !Sub arn:aws:glue:*:${AWS::AccountId}:database/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%
+              - !Sub arn:aws:glue:*:${AWS::AccountId}:table/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%
+          - Effect: Allow
+            Action:
+              - s3:AbortMultipartUpload
+              - s3:GetBucketLocation
+              - s3:GetObject
+              - s3:ListBucket
+              - s3:ListBucketMultipartUploads
+              - s3:PutObject
+            Resource:
+              - arn:aws:s3:::serverless.firehose-backup-*
+              - arn:aws:s3:::serverless.firehose-backup-*/*
+              - arn:aws:s3:::serverless.metrics-firehose-backup-*
+              - arn:aws:s3:::serverless.metrics-firehose-backup-*/*
+              - arn:aws:s3:::serverless.logs-firehose-backup-*
+              - arn:aws:s3:::serverless.logs-firehose-backup-*/*
+          - Effect: Allow
+            Action:
+              - lambda:InvokeFunction
+              - lambda:GetFunctionConfiguration
+            Resource:
+              - !Sub arn:aws:lambda:*:${AWS::AccountId}:function:%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%
+          - Effect: Allow
+            Action:
+              - kms:GenerateDataKey
+              - kms:Decrypt
+            Resource:
+              - !Sub arn:aws:kms:*:${AWS::AccountId}:key/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%
+          - Effect: Allow
+            Action:
+              - logs:PutLogEvents
+            Resource:
+              - !Sub arn:aws:logs:*:${AWS::AccountId}:log-group:/aws/kinesisfirehose/serverless_metrics-firehose:log-stream:*
+              - !Sub arn:aws:logs:*:${AWS::AccountId}:log-group:%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%:log-stream:*
+          - Effect: Allow
+            Action:
+              - kinesis:DescribeStream
+              - kinesis:GetShardIterator
+              - kinesis:GetRecords
+              - kinesis:ListShards
+            Resource:
+              - !Sub arn:aws:kinesis:*:${AWS::AccountId}:stream/%FIREHOSE_POLICY_TEMPLATE_PLACEHOLDER%
+Parameters:
+  AccountId:
+    Description: '[!Do not change!] The Serverless AWS accountId'
+    Type: String
+  ReportServiceToken:
+    Description: '[!Do not change!] The Stack status report Service ARN'
+    Type: String
+  ExternalId:
+    Description: '[!Do not change!] External ID for securing the role'
+    Type: String
+  Version:
+    Description: '[!Do not change!] Template Version'
+    Type: String
+
+
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "The AWS CloudFormation template for this Serverless application",
+	"Resources": {
+		"ServerlessDeploymentBucket": {
+			"Type": "AWS::S3::Bucket",
+			"Properties": {
+				"BucketEncryption": {
+					"ServerSideEncryptionConfiguration": [
+						{
+							"ServerSideEncryptionByDefault": {
+								"SSEAlgorithm": "AES256"
+							}
+						}
+					]
+				}
+			}
+		},
+		"ServerlessDeploymentBucketPolicy": {
+			"Type": "AWS::S3::BucketPolicy",
+			"Properties": {
+				"Bucket": {
+					"Ref": "ServerlessDeploymentBucket"
+				},
+				"PolicyDocument": {
+					"Statement": [
+						{
+							"Action": "s3:*",
+							"Effect": "Deny",
+							"Principal": "*",
+							"Resource": [
+								{
+									"Fn::Join": [
+										"",
+										[
+											"arn:",
+											{
+												"Ref": "AWS::Partition"
+											},
+											":s3:::",
+											{
+												"Ref": "ServerlessDeploymentBucket"
+											},
+											"/*"
+										]
+									]
+								},
+								{
+									"Fn::Join": [
+										"",
+										[
+											"arn:",
+											{
+												"Ref": "AWS::Partition"
+											},
+											":s3:::",
+											{
+												"Ref": "ServerlessDeploymentBucket"
+											}
+										]
+									]
+								}
+							],
+							"Condition": {
+								"Bool": {
+									"aws:SecureTransport": false
+								}
+							}
+						}
+					]
+				}
+			}
+		}
+	},
+	"Outputs": {
+		"ServerlessDeploymentBucketName": {
+			"Value": {
+				"Ref": "ServerlessDeploymentBucket"
+			}
+		}
+	}
+}
