@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: File Contain CloudFormation Nested Stack & CF File S3 URL
+
+Parameters:
+
+  VpcCIDR:
+    Default: 10.0.0.0/16
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+
+Resources:
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://cloudformation-vpc-test-bucket.s3.amazonaws.com/CF_VPC.yaml
+      Parameters:
+        VpcCIDR: !Ref VpcCIDR

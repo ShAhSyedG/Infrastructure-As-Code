@@ -1,0 +1,110 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: File Contains Security Group [WebServer, ALB, Database, SSH] Configurations
+
+
+Resources:
+
+  # Create Security Group for the Application Load Balancer 
+  ALBSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable HTTP/HTTPS access on port 80/443
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '80'
+        ToPort: '80'
+        CidrIp: "0.0.0.0/0"
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Name
+        Value: Nested Stack ALB Security Group
+      VpcId: !Ref VPC
+
+  # Create Security Group for the Bastion Host aka Jump Box
+  SSHSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: SSH Security Group
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Name
+        Value: Nested Stack SSH Security Group
+      VpcId: !Ref VPC
+
+  # Create Security Group for the Web Server
+  WebServerSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable HTTP/HTTPS access via port 80/443 locked down to the load balancer SG + SSH access via port 22 locked down SSH SG
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '80'
+        ToPort: '80'
+        SourceSecurityGroupId: !Ref ALBSecurityGroup
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        SourceSecurityGroupId: !Ref ALBSecurityGroup
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        SourceSecurityGroupId: !Ref SSHSecurityGroup
+      Tags:
+      - Key: Name
+        Value: Nested Stack WebServer Security Group
+      VpcId: !Ref VPC
+
+  # Create Security Group for the DataBase
+  DataBaseSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Open database for access
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '3306'
+        ToPort: '3306'
+        SourceSecurityGroupId: !Ref WebServerSecurityGroup
+      Tags:
+      - Key: Name
+        Value: Nested Stack DataBase Security Group
+      VpcId: !Ref VPC
+
+  PlaceholderResource:
+    Type: AWS::CloudFormation::WaitConditionHandle
+
+Outputs:
+  # Export ALB Security Group ID
+  ALBSecurityGroup:
+    Description: Application Load Balancer Security Group ID
+    Export:
+      Name: !Sub ${AWS::StackName}-ALBSecurityGroup
+    Value: !Ref ALBSecurityGroup
+
+  # Export SSH Security Group ID
+  SSHSecurityGroup:
+    Description: SSH Security Group ID
+    Export:
+      Name: !Sub ${AWS::StackName}-SSHSecurityGroup
+    Value: !Ref SSHSecurityGroup
+
+  # Export WebServer Security Group ID
+  WebServerSecurityGroup:
+    Description: Webserver Security Group ID
+    Export:
+      Name: !Sub ${AWS::StackName}-WebServerSecurityGroup
+    Value: !Ref WebServerSecurityGroup
+
+  # Export DataBase Security Group ID
+  DataBaseSecurityGroup:
+    Description: DataBase Security Group ID
+    Export:
+      Name: !Sub ${AWS::StackName}-DataBaseSecurityGroup
+    Value: !Ref DataBaseSecurityGroup

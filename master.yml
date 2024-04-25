@@ -1,0 +1,80 @@
+# Note : The Cloudformation Security Group IP address is open by default (testing purpose).
+# You should update Security Group Access with your own IP Address to ensure your instances security.
+#
+# Prerequisites
+# Before you can start this process, you need the following:
+# - Your AWS account must have one VPC available to be created in the selected region
+#
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  This is a master template to create a VPC infrastructure. #magic___^_^___line Last Modified: 15th April 2018 Author: Thinegan Ratnam <thinegan@thinegan.com> #magic___^_^___line
+###############################################################################################################
+
+Parameters:
+  PMServerEnv:
+    Description: "Server Environment name."
+    ConstraintDescription: "Choose an Environment from the drop down"
+    Type: "String"
+    Default: "Dev"
+
+  PMVpcCIDR:
+    Description: "Please enter the IP range (CIDR notation) for this VPC"
+    Type: "String"
+    Default: 10.0.0.0/16
+
+  PMPublicSubnet1CIDR:
+    Description: "Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone"
+    Type: "String"
+    Default: 10.0.1.0/24
+
+  PMPublicSubnet2CIDR:
+    Description: "Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone"
+    Type: "String"
+    Default: 10.0.2.0/24
+
+  PMPrivateSubnet1CIDR:
+    Description: "Please enter the IP range (CIDR notation) for the private subnet in the first Availability Zone"
+    Type: "String"
+    Default: 10.0.3.0/24
+
+  PMPrivateSubnet2CIDR:
+    Description: "Please enter the IP range (CIDR notation) for the private subnet in the second Availability Zone"
+    Type: "String"
+    Default: 10.0.4.0/24
+
+###############################################################################################################
+
+Resources:
+
+  MyVPC:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: https://infrastructure-cf-test.s3.amazonaws.com/vpc-vpc.yml
+      TimeoutInMinutes: '5'
+      Parameters:
+        PMServerEnv: !Ref "AWS::StackName"
+        PMVpcCIDR: !Ref "PMVpcCIDR"
+        PMPublicSubnet1CIDR: !Ref "PMPublicSubnet1CIDR"
+        PMPublicSubnet2CIDR: !Ref "PMPublicSubnet2CIDR"
+        PMPrivateSubnet1CIDR: !Ref "PMPrivateSubnet1CIDR"
+        PMPrivateSubnet2CIDR: !Ref "PMPrivateSubnet2CIDR"
+
+  MySecurityGroup:
+    Type: "AWS::CloudFormation::Stack"
+    DependsOn:
+    - "MyVPC"
+    Properties:
+      TemplateURL: https://cloudformation-vpc-test-bucket.s3.amazonaws.com/security_group.yml
+      TimeoutInMinutes: '5'
+      Parameters:
+        #PMServerEnv: !Ref "AWS::StackName"
+        #PMVpcCIDR: !Ref "PMVpcCIDR"
+        PMVPC: !GetAtt "MyVPC.Outputs.VPC"
+
+Outputs:
+
+  MyStackName:
+    Description: "A reference to Cloudformation Stack Name"
+    Value: !Ref "AWS::StackName"
+    Export:
+      Name: !Sub "${AWS::StackName}-StackName"
