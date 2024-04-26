@@ -1,6 +1,6 @@
 **Design Pattern:**
 
-Used nested stacks in a design pattern that promotes modularity, reusability, and manageability of your infrastructure templates. Nested stacks enable you to break down a complex CloudFormation template into smaller, more manageable units, each representing a specific component or aspect of your infrastructure currently used in VPC deployment.
+Used nested stacks in a design pattern that promotes modularity, reusability, and manageability of templates. Nested stacks enables to break down a complex CloudFormation template into smaller, more manageable units, each representing a specific component or aspect of infrastructure currently used in VPC deployment.
 
 
 **The directory consists of a set of nested templates that deploy the following:**
@@ -25,20 +25,20 @@ Used nested stacks in a design pattern that promotes modularity, reusability, an
 | infrastructure/security_group.yml| Security Group configured for SSH, Web Server, Database.                           |
 
 
-Nested stack approach has been used to configure VPC on AWS. In Nested stack master file named master.yml is deploy to create stack on cloudformation where as other files are stored in S3 bucket encrypted and versioning enabled. When master.yml(parent/root yml) file deployed on cloudformation the master file fetches code from s3 bucket based on s3 template URL. On the basis of s3 template URL cloudformation deploys the stack.
+**Nested stack approach has been used to configure VPC on AWS. In Nested stack master file named (master.yml) is deploy to create stack on cloudformation where as other files are stored in S3 bucket encrypted and versioning enabled. When master.yml(parent/root) file deployed on cloudformation the master file fetches code from s3 bucket based on s3 template URL defined in Resources section of master file. On the basis of s3 template URL cloudformation deploys the stack.**
 
 *   In Parent stack dependencies used to create stack in Order. First it will create IAM role after successfull completion of IAM stack then, 
     it will deploy VPC stack after that SecurityGroup Stack will be deployed in order.
 
-*   Layer 3 (Network Layer):
-    At the network layer, you can implement security measures such as Network ACLs (Access Control Lists) and Security Groups to control traffic flow between subnets and instances within your VPC.
+*   **Layer 3 (Network Layer):**
+    At the network layer, Can implement security measures such as Network ACLs (Access Control Lists) and Security Groups to control traffic flow between subnets and instances within your VPC. **(Currentl NACLs are not created for the template.)**
     In a three-tiered architecture, you might configure Network ACLs to restrict traffic between tiers based on IP addresses, ports, or protocols.
-*   Layer 4 (Transport Layer):
-    Security Groups operate at the transport layer (Layer 4) of the OSI model. You can configure security groups to control inbound and outbound traffic to EC2 instances or other resources based on protocol, port, and source/destination IP.
+*   **Layer 4 (Transport Layer):**
+    Security Groups operate at the transport layer (Layer 4) of the OSI model. Can configure security groups to control inbound and outbound traffic to EC2 instances or other resources based on protocol, port, and source/destination IP.
     For example, you can define security group rules to allow HTTP traffic (port 80) only from the presentation tier to the application tier.
-*   Layer 7 (Application Layer):
-    At the application layer, you can implement additional security measures such as AWS WAF (Web Application Firewall) to protect your web applications from common web exploits.
-    AWS WAF allows you to create rules to filter HTTP and HTTPS requests based on various criteria such as IP address, request headers, and URI strings.
+*   **Layer 7 (Application Layer):**
+    At the application layer, can implement additional security measures such as AWS WAF (Web Application Firewall) to protect web applications from common web exploits.
+    AWS WAF allows to create rules to filter HTTP and HTTPS requests based on various criteria such as IP address, request headers, and URI strings.
 
 
 This set of templates deploys the following network design:
@@ -51,3 +51,4 @@ This set of templates deploys the following network design:
 | Public Subnet 2 | 10.0.2.0/24     | 251             |
 | Private Subent 1| 10.0.3.0/24     | 251             |
 | Private Subnet 2| 10.0.4.0/24     | 251             |
+
