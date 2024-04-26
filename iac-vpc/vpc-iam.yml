@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Policy to Allow EC2 instance full access to S3 & CloudWatch. Policy to Allow EC2 VPC Logs to CloudWatch"
+
+Resources:
+
+  # IAM Role for EC2 S3 and CloudWatch Access
+  EC2S3CWRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: "EC2S3CWRole"
+      ManagedPolicyArns:
+      - "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+      - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: "Allow"
+          Principal:
+            Service: "ec2.amazonaws.com"
+          Action: "sts:AssumeRole"
+      Path: "/"
+
+  # IAM Instance Profile for EC2 S3 and CloudWatch Access
+  EC2S3CWInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Path: "/"
+      Roles:
+      - Ref: "EC2S3CWRole"
+
+  # IAM Role for VPC Logs to CloudWatch
+  VPCLogCWRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: "VPCLogCWRole"
+      Policies:
+      - PolicyName: "Custom-VPC-Log"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action:
+            - "logs:CreateLogGroup"
+            - "logs:CreateLogStream"
+            - "logs:PutLogEvents"
+            - "logs:DescribeLogGroups"
+            - "logs:DescribeLogStreams"
+            Resource: "*"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: "Allow"
+          Principal:
+            Service: "vpc-flow-logs.amazonaws.com"
+          Action: "sts:AssumeRole"
+      Path: "/"
+
+  # IAM Instance Profile for VPC Logs to CloudWatch
+  VPCLogCWInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Path: "/"
+      Roles:
+      - Ref: "VPCLogCWRole"
+
+Outputs:
+
+  EC2S3CWInstanceProfile:
+    Description: "Policy to Allow EC2 instance full access to S3 & CloudWatch"
+    Value: !Ref "EC2S3CWInstanceProfile"
+    Export:
+      Name: !Sub "${AWS::StackName}-EC2S3CWInstanceProfile"
+
+  VPCLogCWInstanceProfile:
+    Description: "Policy to Allow EC2 VPC Logs to CloudWatch"
+    Value: !Ref "VPCLogCWInstanceProfile"
+    Export:
+      Name: !Sub "${AWS::StackName}-VPCLogCWInstanceProfile"

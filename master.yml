@@ -46,8 +46,18 @@ Parameters:
 
 Resources:
 
+  MyIAMRole:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: https://infrastructure-cf-test.s3.amazonaws.com/vpc-iam.yml
+      TimeoutInMinutes: '5'
+      Parameters:
+        PMServerEnv: !Ref "AWS::StackName"
+
   MyVPC:
     Type: "AWS::CloudFormation::Stack"
+    DependsOn:
+    - "MyIAMRole"
     Properties:
       TemplateURL: https://infrastructure-cf-test.s3.amazonaws.com/vpc-vpc.yml
       TimeoutInMinutes: '5'
@@ -67,8 +77,6 @@ Resources:
       TemplateURL: https://cloudformation-vpc-test-bucket.s3.amazonaws.com/security_group.yml
       TimeoutInMinutes: '5'
       Parameters:
-        #PMServerEnv: !Ref "AWS::StackName"
-        #PMVpcCIDR: !Ref "PMVpcCIDR"
         PMVPC: !GetAtt "MyVPC.Outputs.VPC"
 
 Outputs:
